@@ -5,6 +5,11 @@ from flask_sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
 
+def utc_now() -> datetime:
+    """Datetime naive UTC (compatible PostgreSQL TIMESTAMP WITHOUT TIME ZONE)."""
+    return datetime.now(timezone.utc).replace(tzinfo=None)
+
+
 class MediaSource(db.Model):
     __tablename__ = "media_sources"
 
@@ -14,7 +19,7 @@ class MediaSource(db.Model):
     base_url = db.Column(db.String(255), nullable=False)
     method = db.Column(db.String(50), nullable=False)
     enabled = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=utc_now)
 
     articles = db.relationship("Article", back_populates="source")
 
@@ -27,7 +32,7 @@ class Category(db.Model):
     description = db.Column(db.Text, nullable=True)
     examples = db.Column(db.Text, nullable=True)
     active = db.Column(db.Boolean, default=True, nullable=False)
-    created_at = db.Column(db.DateTime, default=lambda: datetime.now(timezone.utc))
+    created_at = db.Column(db.DateTime, default=utc_now)
 
 
 class Article(db.Model):
@@ -43,7 +48,7 @@ class Article(db.Model):
     author = db.Column(db.String(255), nullable=True)
     site_section = db.Column(db.String(255), nullable=True)
     collected_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime, default=utc_now, nullable=False
     )
     content_hash = db.Column(db.String(64), nullable=False, index=True)
     title_norm = db.Column(db.String(500), nullable=False, index=True)
@@ -68,7 +73,7 @@ class ScrapeLog(db.Model):
     level = db.Column(db.String(20), default="error", nullable=False)
     motif = db.Column(db.Text, nullable=False)
     created_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime, default=utc_now, nullable=False
     )
 
 
@@ -77,7 +82,7 @@ class CollectionRun(db.Model):
 
     id = db.Column(db.Integer, primary_key=True)
     started_at = db.Column(
-        db.DateTime, default=lambda: datetime.now(timezone.utc), nullable=False
+        db.DateTime, default=utc_now, nullable=False
     )
     finished_at = db.Column(db.DateTime, nullable=True)
     sources = db.Column(db.String(255), nullable=False)

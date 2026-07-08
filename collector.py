@@ -14,7 +14,40 @@ from scrapers.http_client import HttpClient
 logger = logging.getLogger(__name__)
 
 
+def _sanitize_text(value: str | None) -> str:
+    if not value:
+        return ""
+    # PostgreSQL rejette le caractère NUL (\x00) dans les champs texte
+    return value.replace("\x00", "")
+
+
+def _naive_utc(dt: datetime | None) -> datetime | None:
+    if dt is None:
+        return None
+    if dt.tzinfo is not None:
+        return dt.astimezone(timezone.utc).replace(tzinfo=None)
+    return dt
+
+
+def _prepare_article_fields(scraped) -> dict:
+    title = _sanitize_text((scraped.title or "").strip())[:500]
+    content_raw = _sanitize_text(scraped.content_raw or "")
+    content_clean = _sanitize_text(clean_article_text(content_raw))
+    return {
+        "title": title,
+        "content_raw": content_raw,
+        "content_clean": content_clean,
+        "url": _sanitize_text(scraped.url)[:700],
+        "author": _sanitize_text(scraped.author)[:255] if scraped.author else None,
+        "site_section": _sanitize_text(scraped.site_section)[:255]
+        if scraped.site_section
+        else None,
+        "published_at": _naive_utc(scraped.published_at),
+    }
+
+
 def log_error(source_code: str, motif: str, url: str | None = None) -> None:
+    db.session.rollback()
     db.session.add(
         ScrapeLog(source_code=source_code, url=url, level="error", motif=motif)
     )
@@ -55,23 +88,28 @@ def persist_article(scraped, source: MediaSource) -> tuple[str, Article | None]:
     if not title:
         return "error", None
 
-    # Seul cas vraiment inutile : même URL déjà en base
-    if Article.query.filter_by(url=scraped.url).first():
+    fields = _prepare_article_fields(scraped)
+    title = fields["title"]
+    if not title:
+        return "error", None
+
+    # Seul cas vraiment inutile : même URL déjà connue
+    if Article.query.filter_by(url=fields["url"]).first():
         return "skipped", None
 
-    content_clean = clean_article_text(scraped.content_raw)
+    content_clean = fields["content_clean"]
     if len(content_clean) < MIN_CONTENT_LENGTH:
         article = Article(
             title=title,
-            content_raw=scraped.content_raw or "",
+            content_raw=fields["content_raw"],
             content_clean=content_clean,
-            url=scraped.url,
+            url=fields["url"],
             source_id=source.id,
-            published_at=scraped.published_at,
-            author=scraped.author,
-            site_section=scraped.site_section,
+            published_at=fields["published_at"],
+            author=fields["author"],
+            site_section=fields["site_section"],
             content_hash=content_fingerprint(content_clean or title),
-            title_norm=normalize_title(title),
+            title_norm=normalize_title(title)[:500],
             status="incomplet",
         )
         db.session.add(article)
@@ -79,7 +117,7 @@ def persist_article(scraped, source: MediaSource) -> tuple[str, Article | None]:
         return "incomplete", article
 
     fingerprint = content_fingerprint(content_clean)
-    title_norm = normalize_title(title)
+    title_norm = normalize_title(title)[:500]
 
     # Marquer sans jeter : utile pour volume d'entraînement
     exact_content = Article.query.filter_by(content_hash=fingerprint).first()
@@ -101,13 +139,13 @@ def persist_article(scraped, source: MediaSource) -> tuple[str, Article | None]:
 
     article = Article(
         title=title,
-        content_raw=scraped.content_raw or "",
+        content_raw=fields["content_raw"],
         content_clean=content_clean,
-        url=scraped.url,
+        url=fields["url"],
         source_id=source.id,
-        published_at=scraped.published_at,
-        author=scraped.author,
-        site_section=scraped.site_section,
+        published_at=fields["published_at"],
+        author=fields["author"],
+        site_section=fields["site_section"],
         content_hash=fingerprint,
         title_norm=title_norm,
         status=status,
@@ -201,6 +239,6 @@ def collect_sources(
         )
         lines.extend(f"  - {m}" for m in r.messages[:20])
     run.report = "\n".join(lines)
-    run.finished_at = datetime.now(timezone.utc)
+    run.finished_at = _naive_utc(datetime.now(timezone.utc))
     db.session.commit()
     return run

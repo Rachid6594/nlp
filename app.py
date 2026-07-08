@@ -25,7 +25,7 @@ from config import (
     SQLALCHEMY_DATABASE_URI,
     SQLALCHEMY_TRACK_MODIFICATIONS,
 )
-from models import Article, Category, CollectionRun, MediaSource, ScrapeLog, db
+from models import Article, Category, CollectionRun, MediaSource, ScrapeLog, db, utc_now
 
 
 def create_app() -> Flask:
@@ -240,7 +240,7 @@ def register_routes(app: Flask) -> None:
             comment = (request.form.get("comment") or "").strip()
             article.annotator = annotator
             article.annotation_comment = comment or None
-            article.annotated_at = datetime.now(timezone.utc)
+            article.annotated_at = utc_now()
 
             if action == "valider":
                 cat_id = request.form.get("category_id")
