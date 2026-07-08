@@ -1,0 +1,102 @@
+﻿{% extends "base.html" %}
+{% block title %}File d'annotation | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>File d’annotation</h1>
+  <form method="get" class="filters">
+    <input type="hidden" name="page" value="1">
+    <label>Statut
+      <select name="status">
+        {% for st in ['non_annote','annote','valide','rejete','incomplet','doublon'] %}
+        <option value="{{ st }}" {% if status == st %}selected{% endif %}>{{ st }}</option>
+        {% endfor %}
+        <option value="" {% if not status %}selected{% endif %}>tous</option>
+      </select>
+    </label>
+    <label>Source
+      <select name="source_id">
+        <option value="">toutes</option>
+        {% for s in sources %}
+        <option value="{{ s.id }}" {% if source_id == s.id %}selected{% endif %}>{{ s.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button class="btn secondary" type="submit">Filtrer</button>
+  </form>
+
+  {% if total %}
+  <p class="muted list-meta">
+    {{ total }} article{% if total > 1 %}s{% endif %}
+    · page {{ page }} / {{ total_pages }}
+    · {{ per_page }} par page
+  </p>
+  {% endif %}
+
+  {% if articles %}
+  <div class="table-wrap">
+  <table class="data-table annotate-table">
+    <thead>
+      <tr>
+        <th class="col-id">ID</th>
+        <th class="col-source">Source</th>
+        <th>Titre</th>
+        <th class="col-date">Date</th>
+        <th class="col-status">Statut</th>
+        <th class="col-actions">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for a in articles %}
+      <tr>
+        <td class="col-id">{{ a.id }}</td>
+        <td class="col-source">{{ a.source.name }}</td>
+        <td class="col-title" title="{{ a.title }}">{{ a.title[:90] }}{% if a.title|length > 90 %}…{% endif %}</td>
+        <td class="col-date">{{ a.published_at or a.collected_at }}</td>
+        <td class="col-status"><span class="badge">{{ a.status }}</span></td>
+        <td class="col-actions">
+          <div class="row-actions">
+            <a class="btn tiny" href="{{ url_for('annotate', article_id=a.id) }}">Annoter</a>
+            <form method="post" action="{{ url_for('annotate', article_id=a.id) }}" onsubmit="return confirm('Supprimer définitivement cet article ?');">
+              <button class="btn tiny danger" name="action" value="supprimer" type="submit">Supprimer</button>
+            </form>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  </div>
+
+  {% if total_pages > 1 %}
+  <nav class="pagination" aria-label="Pagination annotation">
+    {% if page > 1 %}
+    <a class="btn tiny secondary" href="{{ url_for('annotate_list', status=status, source_id=source_id, page=page-1) }}">Précédent</a>
+    {% else %}
+    <span class="btn tiny secondary disabled">Précédent</span>
+    {% endif %}
+
+    <span class="page-numbers">
+      {% for p in range(1, total_pages + 1) %}
+        {% if p == page %}
+        <span class="page-num active">{{ p }}</span>
+        {% elif p == 1 or p == total_pages or (p >= page - 2 and p <= page + 2) %}
+        <a class="page-num" href="{{ url_for('annotate_list', status=status, source_id=source_id, page=p) }}">{{ p }}</a>
+        {% elif p == page - 3 or p == page + 3 %}
+        <span class="page-ellipsis">…</span>
+        {% endif %}
+      {% endfor %}
+    </span>
+
+    {% if page < total_pages %}
+    <a class="btn tiny secondary" href="{{ url_for('annotate_list', status=status, source_id=source_id, page=page+1) }}">Suivant</a>
+    {% else %}
+    <span class="btn tiny secondary disabled">Suivant</span>
+    {% endif %}
+  </nav>
+  {% endif %}
+
+  {% else %}
+  <p class="muted">Aucun article pour ce filtre. Lancez une collecte d’abord.</p>
+  {% endif %}
+</section>
+{% endblock %}

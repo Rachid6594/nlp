@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Presse BF | NLP Projet 5{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <a href="{{ url_for('index') }}">Presse BF</a>
+        <span class="muted">Projet 5 · Collecte & annotation</span>
+      </div>
+      <nav>
+        <a href="{{ url_for('index') }}">Tableau de bord</a>
+        <a href="{{ url_for('sources') }}">Sources</a>
+        <a href="{{ url_for('collect') }}">Collecte</a>
+        <a href="{{ url_for('annotate_list') }}">Annotation</a>
+        <a href="{{ url_for('categories') }}">Catégories</a>
+        <a href="{{ url_for('articles') }}">Articles</a>
+        <a href="{{ url_for('logs') }}">Journal</a>
+        <a href="{{ url_for('export_csv') }}">Export CSV</a>
+      </nav>
+    </aside>
+
+    <main class="container">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flashes">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  {% block scripts %}{% endblock %}
+</body>
+</html>

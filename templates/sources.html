@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Sources | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Sources ciblées</h1>
+  <p class="muted">Activez ou désactivez les médias. Chaque source a un scraper indépendant.</p>
+  <form method="post">
+    <table>
+      <thead>
+        <tr><th>Actif</th><th>Média</th><th>Directeur</th><th>URL</th><th>Méthode</th></tr>
+      </thead>
+      <tbody>
+        {% for s in sources %}
+        <tr>
+          <td><input type="checkbox" name="enabled_{{ s.code }}" {% if s.enabled %}checked{% endif %}></td>
+          <td>{{ s.name }} <code>({{ s.code }})</code></td>
+          <td>{{ source_meta.get(s.code, {}).get('director', '') }}</td>
+          <td><a href="{{ s.base_url }}" target="_blank" rel="noopener">{{ s.base_url }}</a></td>
+          <td>{{ s.method }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button class="btn" type="submit">Enregistrer</button>
+  </form>
+</section>
+
+{% if unavailable %}
+<section class="panel">
+  <h2>Sources demandées non exploitables pour l’instant</h2>
+  <table>
+    <thead><tr><th>Média</th><th>Directeur</th><th>URL</th><th>Motif</th></tr></thead>
+    <tbody>
+      {% for code, info in unavailable.items() %}
+      <tr>
+        <td>{{ info.name }} <code>({{ code }})</code></td>
+        <td>{{ info.director }}</td>
+        <td><a href="{{ info.base_url }}" target="_blank" rel="noopener">{{ info.base_url }}</a></td>
+        <td>{{ info.reason }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endif %}
+{% endblock %}

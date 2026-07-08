@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: presse-bf-nlp
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 300
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: presse-bf-db
+          property: connectionString
+
+databases:
+  - name: presse-bf-db
+    plan: free
+    databaseName: presse_bf
+    user: presse_bf_user

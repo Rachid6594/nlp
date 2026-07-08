@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% block title %}Catégories | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Gestion des catégories</h1>
+  <p class="muted">Définissez les catégories avant l’annotation massive. Évitez les changements majeurs ensuite.</p>
+
+  <form method="post" class="stack compact">
+    <input type="hidden" name="action" value="create">
+    <h2>Nouvelle catégorie</h2>
+    <label>Nom <input name="name" required placeholder="Ex. Environnement"></label>
+    <label>Description <textarea name="description" rows="2"></textarea></label>
+    <label>Exemples <textarea name="examples" rows="2" placeholder="Exemples d’articles typiques"></textarea></label>
+    <button class="btn" type="submit">Créer</button>
+  </form>
+</section>
+
+<section class="panel">
+  <h2>Liste</h2>
+  {% for cat in categories %}
+  <article class="card">
+    <header>
+      <h3>{{ cat.name }}
+        {% if cat.active %}<span class="badge ok">actif</span>{% else %}<span class="badge off">inactif</span>{% endif %}
+      </h3>
+      <form method="post" class="inline">
+        <input type="hidden" name="action" value="toggle">
+        <input type="hidden" name="category_id" value="{{ cat.id }}">
+        <button class="btn secondary tiny" type="submit">{% if cat.active %}Désactiver{% else %}Activer{% endif %}</button>
+      </form>
+    </header>
+    <form method="post" class="stack compact">
+      <input type="hidden" name="action" value="update">
+      <input type="hidden" name="category_id" value="{{ cat.id }}">
+      <label>Description <textarea name="description" rows="2">{{ cat.description or '' }}</textarea></label>
+      <label>Exemples <textarea name="examples" rows="2">{{ cat.examples or '' }}</textarea></label>
+      <button class="btn secondary tiny" type="submit">Mettre à jour</button>
+    </form>
+  </article>
+  {% endfor %}
+</section>
+{% endblock %}

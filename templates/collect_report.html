@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Rapport collecte #{{ run.id }}{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Rapport de collecte #{{ run.id }}</h1>
+  <div class="grid stats">
+    <div class="stat"><strong>{{ run.added }}</strong><span>Ajoutés</span></div>
+    <div class="stat"><strong>{{ run.skipped }}</strong><span>Ignorés</span></div>
+    <div class="stat"><strong>{{ run.errors }}</strong><span>Erreurs</span></div>
+  </div>
+  <p><strong>Sources :</strong> {{ run.sources }}</p>
+  <p><strong>Début :</strong> {{ run.started_at }} · <strong>Fin :</strong> {{ run.finished_at or '' }}</p>
+  <pre class="report">{{ run.report or 'Aucun détail.' }}</pre>
+  <p class="actions">
+    <a class="btn" href="{{ url_for('annotate_list') }}">Passer à l’annotation</a>
+    <a class="btn secondary" href="{{ url_for('logs') }}">Voir le journal</a>
+  </p>
+</section>
+{% endblock %}

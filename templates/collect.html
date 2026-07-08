@@ -1,0 +1,64 @@
+﻿{% extends "base.html" %}
+{% block title %}Collecte | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Lancer une collecte</h1>
+  <p class="muted">RSS lorsqu’il est disponible, sinon HTML. Les pages RSS historiques (<code>?paged=N</code>) permettent de remonter plus loin que le flux du jour.</p>
+  <form id="collect-form" method="post" class="stack">
+    <fieldset>
+      <legend>Sources à interroger</legend>
+      {% for s in sources %}
+      <label class="check">
+        <input type="checkbox" name="sources" value="{{ s.code }}" {% if s.enabled %}checked{% endif %} {% if not s.enabled %}disabled{% endif %}>
+        {{ s.name }} <span class="muted">({{ s.method }})</span>
+      </label>
+      {% endfor %}
+    </fieldset>
+    <label>
+      Limite d’articles par source
+      <input type="number" name="limit" value="50" min="1" max="300">
+    </label>
+    <label>
+      Pages RSS historiques (WordPress)
+      <input type="number" name="max_pages" value="5" min="1" max="20">
+    </label>
+    <p class="muted">
+      Exemple : limite 50 + 5 pages ≈ plusieurs dizaines d’articles plus anciens par média.
+      Lefaso (SPIP) et les scrapers HTML (RTB, Zoodomail) n’utilisent pas la pagination RSS.
+      Faso Actu a un délai de 10 s : rester prudent sur le nombre de pages.
+    </p>
+    <button id="collect-submit" class="btn" type="submit">Démarrer la collecte</button>
+  </form>
+</section>
+
+<div id="scrape-loader" class="scrape-loader" hidden aria-live="polite" aria-busy="true">
+  <div class="scrape-loader-card">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2>Collecte en cours…</h2>
+    <p>Les scrapers interrogent les sources sélectionnées.<br>Merci de patienter, cela peut prendre plusieurs minutes.</p>
+    <p class="muted" id="loader-tip">Ne fermez pas cette page.</p>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const form = document.getElementById("collect-form");
+    const loader = document.getElementById("scrape-loader");
+    const submitBtn = document.getElementById("collect-submit");
+    if (!form || !loader) return;
+
+    form.addEventListener("submit", function () {
+      const checked = form.querySelectorAll('input[name="sources"]:checked');
+      if (!checked.length) return;
+      loader.hidden = false;
+      document.body.classList.add("is-loading");
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Collecte en cours…";
+      }
+    });
+  })();
+</script>
+{% endblock %}

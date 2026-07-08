@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Articles | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Articles collectés</h1>
+  <p class="filters">
+    {% for st in [None, 'non_annote','annote','valide','rejete','incomplet','doublon'] %}
+      <a class="btn tiny secondary" href="{{ url_for('articles', status=st) }}">{% if st %}{{ st }}{% else %}tous{% endif %}</a>
+    {% endfor %}
+  </p>
+  <table>
+    <thead><tr><th>ID</th><th>Source</th><th>Titre</th><th>Statut</th><th>Catégorie</th></tr></thead>
+    <tbody>
+      {% for a in articles %}
+      <tr>
+        <td><a href="{{ url_for('annotate', article_id=a.id) }}">{{ a.id }}</a></td>
+        <td>{{ a.source.name }}</td>
+        <td>{{ a.title[:100] }}</td>
+        <td>{{ a.status }}</td>
+        <td>{{ a.category.name if a.category else '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

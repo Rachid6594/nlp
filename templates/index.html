@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Tableau de bord | Presse BF{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Classification d’articles de presse</h1>
+  <p>Collecte multi-sources, nettoyage, annotation manuelle et export du dataset validé.</p>
+</section>
+
+<section class="grid stats">
+  <div class="stat"><strong>{{ stats.total }}</strong><span>Total</span></div>
+  <div class="stat"><strong>{{ stats.non_annote }}</strong><span>Non annotés</span></div>
+  <div class="stat"><strong>{{ stats.annote }}</strong><span>Annotés</span></div>
+  <div class="stat"><strong>{{ stats.valide }}</strong><span>Validés</span></div>
+  <div class="stat"><strong>{{ stats.doublon }}</strong><span>Doublons</span></div>
+  <div class="stat"><strong>{{ stats.incomplet }}</strong><span>Incomplets</span></div>
+  <div class="stat"><strong>{{ stats.rejete }}</strong><span>Rejetés</span></div>
+</section>
+
+<section class="panel">
+  <h2>Sources</h2>
+  <table>
+    <thead><tr><th>Média</th><th>Méthode</th><th>Statut</th><th>Articles</th></tr></thead>
+    <tbody>
+      {% for s in sources %}
+      <tr>
+        <td>{{ s.name }}</td>
+        <td><code>{{ s.method }}</code></td>
+        <td>{% if s.enabled %}<span class="badge ok">actif</span>{% else %}<span class="badge off">inactif</span>{% endif %}</td>
+        <td>{{ s.articles|length }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="actions">
+    <a class="btn" href="{{ url_for('collect') }}">Lancer une collecte</a>
+    <a class="btn secondary" href="{{ url_for('annotate_list') }}">Annoter</a>
+  </p>
+</section>
+
+<section class="panel">
+  <h2>Dernières collectes</h2>
+  {% if last_runs %}
+  <table>
+    <thead><tr><th>#</th><th>Sources</th><th>Ajoutés</th><th>Ignorés</th><th>Erreurs</th><th>Fin</th></tr></thead>
+    <tbody>
+      {% for r in last_runs %}
+      <tr>
+        <td><a href="{{ url_for('collect_report', run_id=r.id) }}">{{ r.id }}</a></td>
+        <td>{{ r.sources }}</td>
+        <td>{{ r.added }}</td>
+        <td>{{ r.skipped }}</td>
+        <td>{{ r.errors }}</td>
+        <td>{{ r.finished_at or '' }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">Aucune collecte pour le moment.</p>
+  {% endif %}
+</section>
+{% endblock %}

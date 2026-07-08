@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Annotation #{{ article.id }}{% endblock %}
+{% block content %}
+<section class="annotate layout">
+  <article class="panel article-view">
+    <p class="meta">
+      <strong>{{ article.source.name }}</strong>
+      · {{ article.published_at or 'date inconnue' }}
+      {% if article.site_section %} · rubrique site : <em>{{ article.site_section }}</em>{% endif %}
+      · statut : <span class="badge">{{ article.status }}</span>
+    </p>
+    <h1>{{ article.title }}</h1>
+    <p><a href="{{ article.url }}" target="_blank" rel="noopener">Ouvrir l’article original ↗</a></p>
+    {% if article.author %}<p class="muted">Auteur : {{ article.author }}</p>{% endif %}
+    <div class="content">{{ article.content_clean }}</div>
+  </article>
+
+  <aside class="panel annotate-form">
+    <h2>Annotation</h2>
+    <p class="muted">Choisissez le thème principal. La rubrique du site n’est qu’un indice.</p>
+    <form method="post" class="stack">
+      <label>Annotateur
+        <input name="annotator" placeholder="Votre nom" required>
+      </label>
+      <fieldset>
+        <legend>Catégorie</legend>
+        {% for cat in categories %}
+        <label class="check">
+          <input type="radio" name="category_id" value="{{ cat.id }}" {% if article.category_id == cat.id %}checked{% endif %}>
+          <strong>{{ cat.name }}</strong>
+          <span class="muted">{{ cat.description }}</span>
+        </label>
+        {% endfor %}
+      </fieldset>
+      <label>Commentaire (cas ambigus)
+        <textarea name="comment" rows="3">{{ article.annotation_comment or '' }}</textarea>
+      </label>
+      <div class="actions wrap">
+        <button class="btn" name="action" value="valider" type="submit">Valider</button>
+        <button class="btn secondary" name="action" value="annoter" type="submit">Annoter</button>
+        <button class="btn secondary" name="action" value="passer" type="submit">Passer</button>
+        <button class="btn danger" name="action" value="rejeter" type="submit">Rejeter</button>
+        <button class="btn danger" name="action" value="incomplet" type="submit">Incomplet</button>
+        <button class="btn danger" name="action" value="doublon" type="submit">Doublon</button>
+        <button
+          class="btn danger"
+          name="action"
+          value="supprimer"
+          type="submit"
+          formnovalidate
+          onclick="return confirm('Supprimer définitivement cet article de la base ?');"
+        >Supprimer</button>
+      </div>
+    </form>
+  </aside>
+</section>
+{% endblock %}
