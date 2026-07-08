@@ -29,20 +29,28 @@ def _naive_utc(dt: datetime | None) -> datetime | None:
     return dt
 
 
+MAX_TITLE_LEN = 490
+MAX_URL_LEN = 700
+MAX_AUTHOR_LEN = 255
+MAX_SECTION_LEN = 255
+
+
 def _prepare_article_fields(scraped) -> dict:
-    title = _sanitize_text((scraped.title or "").strip())[:500]
+    title = _sanitize_text((scraped.title or "").strip())[:MAX_TITLE_LEN]
     content_raw = _sanitize_text(scraped.content_raw or "")
     content_clean = _sanitize_text(clean_article_text(content_raw))
+    title_norm = normalize_title(title)[:MAX_TITLE_LEN]
     return {
         "title": title,
         "content_raw": content_raw,
         "content_clean": content_clean,
-        "url": _sanitize_text(scraped.url)[:700],
-        "author": _sanitize_text(scraped.author)[:255] if scraped.author else None,
-        "site_section": _sanitize_text(scraped.site_section)[:255]
+        "url": _sanitize_text(scraped.url)[:MAX_URL_LEN],
+        "author": _sanitize_text(scraped.author)[:MAX_AUTHOR_LEN] if scraped.author else None,
+        "site_section": _sanitize_text(scraped.site_section)[:MAX_SECTION_LEN]
         if scraped.site_section
         else None,
         "published_at": _naive_utc(scraped.published_at),
+        "title_norm": title_norm,
     }
 
 
@@ -109,7 +117,7 @@ def persist_article(scraped, source: MediaSource) -> tuple[str, Article | None]:
             author=fields["author"],
             site_section=fields["site_section"],
             content_hash=content_fingerprint(content_clean or title),
-            title_norm=normalize_title(title)[:500],
+            title_norm=fields["title_norm"],
             status="incomplet",
         )
         db.session.add(article)
@@ -117,7 +125,7 @@ def persist_article(scraped, source: MediaSource) -> tuple[str, Article | None]:
         return "incomplete", article
 
     fingerprint = content_fingerprint(content_clean)
-    title_norm = normalize_title(title)[:500]
+    title_norm = fields["title_norm"]
 
     # Marquer sans jeter : utile pour volume d'entraînement
     exact_content = Article.query.filter_by(content_hash=fingerprint).first()
@@ -224,8 +232,8 @@ def collect_sources(
             report.errors += 1
             motif = f"Échec collecte source: {exc}"
             report.messages.append(motif)
-            log_error(code, motif)
             db.session.rollback()
+            log_error(code, motif)
 
         reports.append(report)
         run.added += report.added

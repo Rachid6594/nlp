@@ -136,6 +136,7 @@ class RssHtmlScraper:
         return len(BeautifulSoup(html_content or "", "lxml").get_text(" ", strip=True))
 
     def collect(self, limit: int = 30, max_pages: int | None = None) -> Iterable[ScrapedArticle]:
+        max_title_len = 250  # RSS AIB met parfois tout le chapô dans <title>
         for item in self._parse_feed(limit=limit, max_pages=max_pages):
             url = item["link"]
             title = item["title"]
@@ -144,18 +145,23 @@ class RssHtmlScraper:
             section = item["section"]
             published = item["published"]
 
-            need_html = self._rss_text_length(content_raw) < self.min_rss_content_length
-            if need_html:
+            need_content_html = self._rss_text_length(content_raw) < self.min_rss_content_length
+            need_title_html = len(title or "") > max_title_len
+
+            if need_content_html or need_title_html:
                 html_title, html_content, html_author, html_section = self.fetch_html_article(url)
-                if html_content:
+                if html_content and need_content_html:
                     content_raw = html_content
-                if html_title and (not title or len(html_title) > 5):
+                if html_title and (need_title_html or not title or len(html_title) > 5):
                     title = html_title
                 author = author or html_author
                 section = section or html_section
 
+            # Sécurité : titre court pour PostgreSQL VARCHAR(500)
+            title = (title or "").strip()[:490]
+
             yield ScrapedArticle(
-                title=(title or "").strip(),
+                title=title,
                 content_raw=content_raw,
                 url=url,
                 source_code=self.code,
