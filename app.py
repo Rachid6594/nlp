@@ -236,9 +236,7 @@ def register_routes(app: Flask) -> None:
                     return redirect(url_for("annotate", article_id=nxt.id))
                 return redirect(url_for("annotate_list"))
 
-            annotator = (request.form.get("annotator") or "").strip() or "anonyme"
             comment = (request.form.get("comment") or "").strip()
-            article.annotator = annotator
             article.annotation_comment = comment or None
             article.annotated_at = utc_now()
 
