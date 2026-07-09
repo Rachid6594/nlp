@@ -5,6 +5,7 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 DATA_DIR = BASE_DIR / "data"
 DB_PATH = DATA_DIR / "articles.db"
+PROD_MODEL_DIR = BASE_DIR / "models" / "tfidf-svm-optimise"
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "dev-nlp-projet5-uvbf-change-en-production")
 

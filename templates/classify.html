@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+{% block title %}Classification | Presse BF{% endblock %}
+{% block content %}
+<section class="panel">
+  <h1>Classification automatique</h1>
+  <p class="muted">
+    Étape 6 du projet : prédiction en temps réel avec le modèle
+    <strong>{{ status.modele or "TF-IDF + SVM" }}</strong> optimisé.
+  </p>
+
+  {% if not status.ready %}
+  <div class="flash flash-warning">
+    {{ status.message }}
+  </div>
+  {% else %}
+  <p class="muted model-meta">
+    F1 test : {{ "%.1f"|format((status.test_f1_weighted or 0) * 100) }} %
+    · Corpus d'entraînement : {{ status.n_total or "?" }} articles
+  </p>
+  {% endif %}
+</section>
+
+{% if status.ready %}
+<section class="panel">
+  <form method="post" enctype="multipart/form-data" class="stack">
+    <label>
+      Titre (optionnel)
+      <input type="text" name="titre" value="{{ form.titre }}" placeholder="Titre de l'article">
+    </label>
+    <label>
+      Contenu de l'article
+      <textarea name="contenu" rows="12" placeholder="Collez ici le texte de l'article (titre + corps recommandé)…">{{ form.contenu }}</textarea>
+    </label>
+    <label>
+      Ou fichier texte (.txt)
+      <input type="file" name="fichier" accept=".txt,text/plain">
+    </label>
+    <p class="muted">Le titre et le contenu sont concaténés comme à l'entraînement. Privilégiez un texte d'au moins quelques phrases.</p>
+    <button class="btn" type="submit">Classifier</button>
+  </form>
+</section>
+
+{% if result %}
+<section class="panel result-panel">
+  <h2>Résultat</h2>
+  <p class="prediction-badge">
+    Catégorie prédite :
+    <strong>{{ result.prediction }}</strong>
+    <span class="muted">({{ result.confidence }} % de confiance)</span>
+  </p>
+
+  <h3>Scores par catégorie</h3>
+  <ul class="score-list">
+    {% for item in result.scores %}
+    <li class="score-item {% if item.label == result.prediction %}is-top{% endif %}">
+      <div class="score-row">
+        <span>{{ item.label }}</span>
+        <span>{{ item.percent }} %</span>
+      </div>
+      <div class="score-bar" aria-hidden="true">
+        <span style="width: {{ item.percent }}%"></span>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+</section>
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,4 +1,4 @@
-﻿"""Application Flask | Partie I : collecte, annotation, export."""
+﻿"""Application Flask | Collecte, annotation, classification."""
 from __future__ import annotations
 
 import csv
@@ -17,6 +17,8 @@ from flask import (
 )
 
 from collector import collect_sources
+from classifier import ClassifierNotReadyError, build_input_text, model_status, predict_categories
+from cleaning import clean_article_text, normalize_whitespace
 from config import (
     DATA_DIR,
     DEFAULT_CATEGORIES,
@@ -326,6 +328,50 @@ def register_routes(app: Flask) -> None:
             headers={
                 "Content-Disposition": "attachment; filename=dataset_valide.csv"
             },
+        )
+
+    @app.route("/classify", methods=["GET", "POST"])
+    def classify():
+        status = model_status()
+        form = {"titre": "", "contenu": ""}
+        result = None
+
+        if request.method == "POST":
+            if not status["ready"]:
+                flash(status["message"], "warning")
+                return redirect(url_for("classify"))
+
+            form["titre"] = (request.form.get("titre") or "").strip()
+            form["contenu"] = (request.form.get("contenu") or "").strip()
+
+            upload = request.files.get("fichier")
+            if upload and upload.filename:
+                raw = upload.read()
+                try:
+                    file_text = raw.decode("utf-8")
+                except UnicodeDecodeError:
+                    file_text = raw.decode("latin-1", errors="replace")
+                file_text = normalize_whitespace(clean_article_text(file_text))
+                if file_text:
+                    if form["contenu"]:
+                        form["contenu"] = f"{form['contenu']}\n\n{file_text}"
+                    else:
+                        form["contenu"] = file_text
+
+            texte = build_input_text(form["titre"], form["contenu"])
+            try:
+                result = predict_categories(texte)
+            except ValueError as exc:
+                flash(str(exc), "warning")
+            except ClassifierNotReadyError as exc:
+                flash(str(exc), "warning")
+                status = model_status()
+
+        return render_template(
+            "classify.html",
+            status=status,
+            form=form,
+            result=result,
         )
 
 

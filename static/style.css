@@ -290,6 +290,49 @@ body.is-loading { overflow: hidden; }
   to { transform: rotate(360deg); }
 }
 
+.model-meta { margin-top: 0.5rem; }
+.prediction-badge {
+  font-size: 1.15rem;
+  margin: 0.5rem 0 1.25rem;
+}
+.prediction-badge strong {
+  color: var(--accent);
+  font-size: 1.35rem;
+}
+.score-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 0.65rem;
+}
+.score-item.is-top .score-row span:first-child {
+  font-weight: 700;
+  color: var(--accent);
+}
+.score-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.95rem;
+  margin-bottom: 0.25rem;
+}
+.score-bar {
+  height: 8px;
+  background: #efe8da;
+  border-radius: 999px;
+  overflow: hidden;
+}
+.score-bar span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), #3d9a7a);
+  border-radius: 999px;
+}
+.score-item.is-top .score-bar span {
+  background: linear-gradient(90deg, var(--accent-2), #d46a32);
+}
+
 @media (max-width: 900px) {
   .layout { grid-template-columns: 1fr; }
   .sidebar {

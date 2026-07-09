@@ -7,5 +7,7 @@ __pycache__/
 .ipynb_checkpoints/
 data/articles.db
 models/
+!models/tfidf-svm-optimise/
+!models/tfidf-svm-optimise/**
 *.egg-info/
 .DS_Store
