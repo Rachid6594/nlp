@@ -3,10 +3,6 @@
 {% block content %}
 <section class="panel">
   <h1>Classification automatique</h1>
-  <p class="muted">
-    Étape 6 du projet : prédiction en temps réel avec le modèle
-    <strong>{{ status.modele or "TF-IDF + SVM" }}</strong> optimisé.
-  </p>
 
   {% if not status.ready %}
   <div class="flash flash-warning">

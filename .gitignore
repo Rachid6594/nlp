@@ -6,8 +6,7 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 data/articles.db
-models/
-!models/tfidf-svm-optimise/
-!models/tfidf-svm-optimise/**
+# CamemBERT (~400 Mo) : trop lourd pour Git / Render
+models/camembert-classifieur/
 *.egg-info/
 .DS_Store
