@@ -9,10 +9,6 @@
     {{ status.message }}
   </div>
   {% else %}
-  <p class="muted model-meta">
-    F1 test : {{ "%.1f"|format((status.test_f1_weighted or 0) * 100) }} %
-    · Corpus d'entraînement : {{ status.n_total or "?" }} articles
-  </p>
   {% endif %}
 </section>
 

@@ -6,7 +6,17 @@ __pycache__/
 .pytest_cache/
 .ipynb_checkpoints/
 data/articles.db
+data/resultats_comparaison.csv
 # CamemBERT (~400 Mo) : trop lourd pour Git / Render
 models/camembert-classifieur/
 *.egg-info/
 .DS_Store
+
+# Rapports et captures (locaux, pas versionnés)
+docs/
+scripts/
+
+# Scripts / logs temporaires (debug notebook, etc.)
+/_*.py
+/_*.log
+/_cells.txt
